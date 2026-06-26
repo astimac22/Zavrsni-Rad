@@ -70,6 +70,7 @@ public class ClientHandler {
 
             String header;
             int contentLength = 0;
+            String sessionEmail = null;
 
             while (
                     (header = in.readLine()) != null
@@ -88,6 +89,23 @@ public class ClientHandler {
                                     header.substring(15)
                                             .trim()
                             );
+                }
+
+                if (header.startsWith("Cookie:")) {
+
+                    String cookieString =
+                            header.substring(7).trim();
+
+                    for (String part : cookieString.split(";")) {
+
+                        String[] kv =
+                                part.trim().split("=", 2);
+
+                        if (kv.length == 2
+                                && kv[0].trim().equals("user_email")) {
+                            sessionEmail = kv[1].trim();
+                        }
+                    }
                 }
             }
 
@@ -114,6 +132,7 @@ public class ClientHandler {
             List<String> seatNumbers = new ArrayList<>();
             String name = null;
             String email = null;
+            String password = null;
             Integer reservationId = null;
 
             if (!query.isBlank()) {
@@ -139,10 +158,6 @@ public class ClientHandler {
 
                     if (key.equals("screening")) {
                         screeningId = Integer.parseInt(value);
-                    }
-
-                    if (key.equals("email")) {
-                        email = value;
                     }
 
                     if (key.equals("id")) {
@@ -184,6 +199,10 @@ public class ClientHandler {
                         email = value;
                     }
 
+                    if (key.equals("password")) {
+                        password = value;
+                    }
+
                     if (key.equals("id")) {
                         reservationId = Integer.parseInt(value);
                     }
@@ -197,7 +216,7 @@ public class ClientHandler {
             Router router =
                     new Router();
 
-            String content =
+            HttpResponse response =
                     router.route(
                             method,
                             path,
@@ -206,43 +225,39 @@ public class ClientHandler {
                             seatNumbers,
                             name,
                             email,
-                            reservationId
+                            password,
+                            reservationId,
+                            sessionEmail
                     );
 
-            String contentType =
-                    "text/html";
+            if (response.isRedirect()) {
 
-            if (
-                    path.endsWith(".css")
-            ) {
+                out.println("HTTP/1.1 302 Found");
 
-                contentType =
-                        "text/css";
-            }
+                if (response.getCookie() != null) {
+                    out.println("Set-Cookie: " + response.getCookie());
+                }
 
-            if (
-                    content.equals("404")
-            ) {
-
-                out.println(
-                        "HTTP/1.1 404 Not Found"
-                );
-
-                out.println(
-                        "Content-Type: text/html"
-                );
-
+                out.println("Location: " + response.getRedirect());
                 out.println();
 
-                out.println(
-                        "<h1>404 Not Found</h1>"
-                );
+            } else if (response.getStatus() == 404) {
+
+                out.println("HTTP/1.1 404 Not Found");
+                out.println("Content-Type: text/html");
+                out.println();
+                out.println("<h1>404 Not Found</h1>");
 
             } else {
 
-                out.println(
-                        "HTTP/1.1 200 OK"
-                );
+                String contentType =
+                        path.endsWith(".css") ? "text/css" : "text/html";
+
+                out.println("HTTP/1.1 200 OK");
+
+                if (response.getCookie() != null) {
+                    out.println("Set-Cookie: " + response.getCookie());
+                }
 
                 out.println(
                         "Content-Type: "
@@ -251,8 +266,7 @@ public class ClientHandler {
                 );
 
                 out.println();
-
-                out.println(content);
+                out.println(response.getBody());
             }
 
             out.flush();

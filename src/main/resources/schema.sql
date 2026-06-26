@@ -1,3 +1,13 @@
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    name TEXT NOT NULL
+);
+
+INSERT OR IGNORE INTO users (email, password, name) VALUES
+    ('test@test.com', 'lozinka', 'Test Korisnik');
+
 CREATE TABLE IF NOT EXISTS movies (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL

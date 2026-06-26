@@ -420,3 +420,59 @@ h2 {
 .current-seat-label {
     color: #2563eb;
 }
+
+/* Auth forms (login / register) */
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 360px;
+    margin: 0 auto 20px auto;
+    text-align: left;
+}
+
+.auth-form label {
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+.auth-form input {
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-family: Arial, sans-serif;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+.auth-form .button {
+    width: 100%;
+}
+
+.auth-error {
+    color: #ef4444;
+    font-size: 0.9rem;
+    min-height: 1.2em;
+    margin: 0;
+}
+
+.auth-switch {
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
+.auth-switch a {
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}

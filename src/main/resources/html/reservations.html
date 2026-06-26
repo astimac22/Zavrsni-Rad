@@ -9,21 +9,12 @@
 <nav class="nav">
     <a href="/">Filmovi</a>
     <a href="/reservations">Moje rezervacije</a>
+    <a href="/logout">Odjava</a>
 </nav>
 
 <div class="container">
 
     <h1>Moje rezervacije</h1>
-
-    <form class="lookup-form" method="GET" action="/reservations">
-        <input
-            type="email"
-            name="email"
-            value="{{email}}"
-            placeholder="Unesite svoju e-poštu"
-        >
-        <button type="submit" class="button">Pretraži</button>
-    </form>
 
     <div class="reservations-list">
         {{reservations}}

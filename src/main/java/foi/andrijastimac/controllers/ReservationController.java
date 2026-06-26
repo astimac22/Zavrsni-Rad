@@ -2,12 +2,14 @@ package foi.andrijastimac.controllers;
 
 import foi.andrijastimac.models.Reservation;
 import foi.andrijastimac.models.Seat;
+import foi.andrijastimac.models.User;
+import foi.andrijastimac.server.HttpResponse;
 import foi.andrijastimac.services.HallService;
 import foi.andrijastimac.services.ReservationService;
 import foi.andrijastimac.services.TemplateService;
+import foi.andrijastimac.services.UserService;
 
 import java.util.List;
-import java.util.ArrayList;
 
 public class ReservationController {
 
@@ -20,47 +22,52 @@ public class ReservationController {
     private final TemplateService templateService =
             new TemplateService();
 
-    public String reserve(
+    private final UserService userService =
+            new UserService();
+
+    public HttpResponse reserve(
             List<String> seatNumbers,
             int screeningId,
-            String customerName,
-            String customerEmail
+            String sessionEmail
     ) {
 
         if (seatNumbers == null || seatNumbers.isEmpty()) {
-            return "<h1>Greška: nije odabrano nijedno sjedalo</h1>";
+            return HttpResponse.ok(
+                    "<h1>Greška: nije odabrano nijedno sjedalo</h1>"
+            );
+        }
+
+        User user =
+                userService.findByEmail(sessionEmail);
+
+        if (user == null) {
+            return HttpResponse.redirect("/login");
         }
 
         List<Reservation> reservations =
                 reservationService.reserve(
                         seatNumbers,
                         screeningId,
-                        customerName,
-                        customerEmail
+                        user.getName(),
+                        user.getEmail()
                 );
 
         if (reservations.isEmpty()) {
-            return "<h1>Greška pri rezervaciji</h1>";
+            return HttpResponse.ok(
+                    "<h1>Greška pri rezervaciji</h1>"
+            );
         }
 
         return buildConfirmation(reservations);
     }
 
-    public String myReservations(String email) {
+    public HttpResponse myReservations(String sessionEmail) {
 
         String template =
                 templateService.loadTemplate("reservations.html");
 
-        if (email == null || email.isBlank()) {
-            template = templateService.replace(template, "email", "");
-            template = templateService.replace(template, "reservations", "");
-            return template;
-        }
-
-        template = templateService.replace(template, "email", email);
-
         List<Reservation> reservations =
-                reservationService.findByEmail(email);
+                reservationService.findByEmail(sessionEmail);
 
         if (reservations.isEmpty()) {
 
@@ -70,7 +77,7 @@ public class ReservationController {
                     "<p class=\"no-reservations\">Nema rezervacija za ovu adresu e-pošte.</p>"
             );
 
-            return template;
+            return HttpResponse.ok(template);
         }
 
         StringBuilder html = new StringBuilder();
@@ -102,8 +109,6 @@ public class ReservationController {
             html.append("<input type=\"hidden\" name=\"_method\" value=\"DELETE\">");
             html.append("<input type=\"hidden\" name=\"id\" value=\"")
                     .append(r.getId()).append("\">");
-            html.append("<input type=\"hidden\" name=\"email\" value=\"")
-                    .append(r.getCustomerEmail()).append("\">");
             html.append("<button type=\"submit\" class=\"button button-danger\">Otkaži</button>");
             html.append("</form>");
 
@@ -113,22 +118,21 @@ public class ReservationController {
 
         template = templateService.replace(template, "reservations", html.toString());
 
-        return template;
+        return HttpResponse.ok(template);
     }
 
-    public String cancel(int reservationId, String email) {
-
+    public HttpResponse cancel(int reservationId, String sessionEmail) {
         reservationService.cancel(reservationId);
-        return myReservations(email);
+        return myReservations(sessionEmail);
     }
 
-    public String changeForm(int reservationId) {
+    public HttpResponse changeForm(int reservationId) {
 
         Reservation reservation =
                 reservationService.findById(reservationId);
 
         if (reservation == null) {
-            return "404";
+            return HttpResponse.notFound();
         }
 
         List<Seat> seats =
@@ -188,32 +192,34 @@ public class ReservationController {
                 template, "seats", seatsHtml.toString()
         );
 
-        return template;
+        return HttpResponse.ok(template);
     }
 
-    public String changeSeat(int reservationId, String newSeatNumber) {
+    public HttpResponse changeSeat(int reservationId, String newSeatNumber) {
 
         boolean success =
                 reservationService.changeSeat(reservationId, newSeatNumber);
 
         if (!success) {
-            return "<div style=\"text-align:center;margin:40px\">"
-                    + "<h1>Sjedalo nije dostupno</h1>"
-                    + "<a href=\"/reservation/change?id=" + reservationId
-                    + "\">Pokušaj ponovo</a></div>";
+            return HttpResponse.ok(
+                    "<div style=\"text-align:center;margin:40px\">"
+                            + "<h1>Sjedalo nije dostupno</h1>"
+                            + "<a href=\"/reservation/change?id=" + reservationId
+                            + "\">Pokušaj ponovo</a></div>"
+            );
         }
 
         Reservation reservation =
                 reservationService.findById(reservationId);
 
         if (reservation == null) {
-            return "<h1>Greška</h1>";
+            return HttpResponse.ok("<h1>Greška</h1>");
         }
 
         return buildConfirmation(List.of(reservation));
     }
 
-    private String buildConfirmation(List<Reservation> reservations) {
+    private HttpResponse buildConfirmation(List<Reservation> reservations) {
 
         Reservation first = reservations.get(0);
 
@@ -251,6 +257,6 @@ public class ReservationController {
                 template, "email", first.getCustomerEmail()
         );
 
-        return template;
+        return HttpResponse.ok(template);
     }
 }

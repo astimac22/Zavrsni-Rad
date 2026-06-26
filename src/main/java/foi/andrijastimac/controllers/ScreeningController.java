@@ -1,19 +1,21 @@
 package foi.andrijastimac.controllers;
 
 import foi.andrijastimac.models.Screening;
+import foi.andrijastimac.server.HttpResponse;
 import foi.andrijastimac.services.ScreeningService;
 import foi.andrijastimac.services.TemplateService;
 
 import java.util.List;
 
 public class ScreeningController {
+
     private final ScreeningService screeningService =
             new ScreeningService();
 
     private final TemplateService templateService =
             new TemplateService();
 
-    public String index(int movieId) {
+    public HttpResponse index(int movieId) {
 
         List<Screening> screenings =
                 screeningService.getScreenings(
@@ -51,10 +53,12 @@ public class ScreeningController {
                         "screenings.html"
                 );
 
-        return templateService.replace(
-                template,
-                "screenings",
-                screeningsHtml.toString()
+        return HttpResponse.ok(
+                templateService.replace(
+                        template,
+                        "screenings",
+                        screeningsHtml.toString()
+                )
         );
     }
 }

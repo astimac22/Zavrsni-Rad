@@ -1,12 +1,13 @@
 package foi.andrijastimac.routes;
 
 import foi.andrijastimac.controllers.*;
+import foi.andrijastimac.server.HttpResponse;
 
 import java.util.List;
 
 public class Router {
 
-    public String route(
+    public HttpResponse route(
             String method,
             String path,
             Integer movieId,
@@ -14,18 +15,40 @@ public class Router {
             List<String> seatNumbers,
             String name,
             String email,
-            Integer reservationId
+            String password,
+            Integer reservationId,
+            String sessionEmail
     ) {
 
         if (method.equals("GET") && path.equals("/style.css")) {
             return new CssController().style();
         }
 
-        if (method.equals("GET") && path.equals("/")) {
-            return new HomeController().index();
+        if (method.equals("GET") && path.equals("/login")) {
+            return new UserController().loginForm();
         }
 
-        if (method.equals("GET") && path.equals("/movies")) {
+        if (method.equals("POST") && path.equals("/login")) {
+            return new UserController().login(email, password);
+        }
+
+        if (method.equals("GET") && path.equals("/register")) {
+            return new UserController().registerForm();
+        }
+
+        if (method.equals("POST") && path.equals("/register")) {
+            return new UserController().register(email, password, name);
+        }
+
+        if (sessionEmail == null || sessionEmail.isBlank()) {
+            return HttpResponse.redirect("/login");
+        }
+
+        if (method.equals("GET") && path.equals("/logout")) {
+            return new UserController().logout();
+        }
+
+        if (method.equals("GET") && (path.equals("/") || path.equals("/movies"))) {
             return new HomeController().index();
         }
 
@@ -36,7 +59,7 @@ public class Router {
         if (method.equals("GET") && path.equals("/seats")) {
 
             if (screeningId == null) {
-                return "404";
+                return HttpResponse.notFound();
             }
 
             return new SeatController().index(screeningId);
@@ -44,17 +67,17 @@ public class Router {
 
         if (method.equals("POST") && path.equals("/reserve")) {
             return new ReservationController()
-                    .reserve(seatNumbers, screeningId, name, email);
+                    .reserve(seatNumbers, screeningId, sessionEmail);
         }
 
         if (method.equals("GET") && path.equals("/reservations")) {
-            return new ReservationController().myReservations(email);
+            return new ReservationController().myReservations(sessionEmail);
         }
 
         if (method.equals("GET") && path.equals("/reservation/change")) {
 
             if (reservationId == null) {
-                return "404";
+                return HttpResponse.notFound();
             }
 
             return new ReservationController().changeForm(reservationId);
@@ -63,21 +86,21 @@ public class Router {
         if (method.equals("DELETE") && path.equals("/reservation")) {
 
             if (reservationId == null) {
-                return "404";
+                return HttpResponse.notFound();
             }
 
-            return new ReservationController().cancel(reservationId, email);
+            return new ReservationController().cancel(reservationId, sessionEmail);
         }
 
         if (method.equals("PUT") && path.equals("/reservation")) {
 
             if (reservationId == null || seatNumbers == null || seatNumbers.isEmpty()) {
-                return "404";
+                return HttpResponse.notFound();
             }
 
             return new ReservationController().changeSeat(reservationId, seatNumbers.get(0));
         }
 
-        return "404";
+        return HttpResponse.notFound();
     }
 }

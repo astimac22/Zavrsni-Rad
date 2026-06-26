@@ -1,6 +1,7 @@
 package foi.andrijastimac.controllers;
 
 import foi.andrijastimac.models.Movie;
+import foi.andrijastimac.server.HttpResponse;
 import foi.andrijastimac.services.MovieService;
 import foi.andrijastimac.services.TemplateService;
 
@@ -14,7 +15,7 @@ public class HomeController {
     private final TemplateService templateService =
             new TemplateService();
 
-    public String index() {
+    public HttpResponse index() {
 
         List<Movie> movies =
                 movieService.getMovies();
@@ -42,10 +43,12 @@ public class HomeController {
         String template =
                 templateService.loadTemplate("index.html");
 
-        return templateService.replace(
-                template,
-                "movies",
-                moviesHtml.toString()
+        return HttpResponse.ok(
+                templateService.replace(
+                        template,
+                        "movies",
+                        moviesHtml.toString()
+                )
         );
     }
 }

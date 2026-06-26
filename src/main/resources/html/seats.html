@@ -9,6 +9,7 @@
 <nav class="nav">
     <a href="/">Filmovi</a>
     <a href="/reservations">Moje rezervacije</a>
+    <a href="/logout">Odjava</a>
 </nav>
 
 <div class="container">
@@ -18,16 +19,6 @@
     <form method="POST" action="/reserve">
 
         <input type="hidden" name="screening" value="{{screeningId}}">
-
-        <div class="customer-info">
-            <h2>Vaši podaci</h2>
-            <div class="customer-fields">
-                <label for="name">Ime i prezime</label>
-                <input type="text" id="name" name="name" placeholder="Ime i prezime" required>
-                <label for="email">E-pošta</label>
-                <input type="email" id="email" name="email" placeholder="E-pošta" required>
-            </div>
-        </div>
 
         <div class="seat-legend">
             <span class="legend-item"><span class="legend-box available"></span> Slobodno</span>

@@ -1,9 +1,9 @@
 package foi.andrijastimac.controllers;
 
+import foi.andrijastimac.models.Seat;
+import foi.andrijastimac.server.HttpResponse;
 import foi.andrijastimac.services.HallService;
 import foi.andrijastimac.services.TemplateService;
-
-import foi.andrijastimac.models.Seat;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ public class SeatController {
     private final TemplateService templateService =
             new TemplateService();
 
-    public String index(int screeningId) {
+    public HttpResponse index(int screeningId) {
 
         List<Seat> seats =
                 hallService.getSeatsByScreening(
@@ -55,8 +55,10 @@ public class SeatController {
                 template, "screeningId", String.valueOf(screeningId)
         );
 
-        return templateService.replace(
-                template, "seats", seatsHtml.toString()
+        return HttpResponse.ok(
+                templateService.replace(
+                        template, "seats", seatsHtml.toString()
+                )
         );
     }
 }
