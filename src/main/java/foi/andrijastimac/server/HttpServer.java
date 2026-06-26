@@ -23,7 +23,7 @@ public class HttpServer {
                 Socket client = serverSocket.accept();
 
                 ClientHandler handler = new ClientHandler(client);
-                handler.handle();
+                new Thread(() -> handler.handle()).start();
             }
         }
         catch (IOException e) {
